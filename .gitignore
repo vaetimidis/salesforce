@@ -1,0 +1,12 @@
+# Salesforce DX local files
+.sf/
+.sfdx/
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+
+# System / OS files
+.DS_Store
+Thumbs.db

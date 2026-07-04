@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>Item Purchase Tool</label>
+    
+    <!-- Object Permissions -->
+    <objectPermissions>
+        <allowCreate>true</allowCreate>
+        <allowDelete>true</allowDelete>
+        <allowEdit>true</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>true</modifyAllRecords>
+        <object>Item__c</object>
+        <viewAllRecords>true</viewAllRecords>
+    </objectPermissions>
+    <objectPermissions>
+        <allowCreate>true</allowCreate>
+        <allowDelete>true</allowDelete>
+        <allowEdit>true</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>true</modifyAllRecords>
+        <object>Purchase__c</object>
+        <viewAllRecords>true</viewAllRecords>
+    </objectPermissions>
+    <objectPermissions>
+        <allowCreate>true</allowCreate>
+        <allowDelete>true</allowDelete>
+        <allowEdit>true</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>true</modifyAllRecords>
+        <object>PurchaseLine__c</object>
+        <viewAllRecords>true</viewAllRecords>
+    </objectPermissions>
+
+    <!-- Field Permissions -->
+    <!-- Item__c -->
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Item__c.Description__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Item__c.Family__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Item__c.Image__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Item__c.Type__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- Purchase__c -->
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Purchase__c.ClientId__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Purchase__c.GrandTotal__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Purchase__c.TotalItems__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- User -->
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>User.IsManager__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- Tab Settings -->
+    <tabSettings>
+        <tab>Item_Purchase_Tool</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
+</PermissionSet>

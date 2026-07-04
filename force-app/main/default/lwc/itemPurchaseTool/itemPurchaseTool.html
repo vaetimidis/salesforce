@@ -1,0 +1,349 @@
+<template>
+    <!-- Main Card Container -->
+    <div class="slds-card slds-p-around_medium main-container">
+        
+        <!-- Account Details Header -->
+        <template if:true={account}>
+            <div class="slds-page-header slds-m-bottom_medium account-header">
+                <div class="slds-page-header__row">
+                    <div class="slds-page-header__col-title">
+                        <div class="slds-media slds-media_center">
+                            <div class="slds-media__figure">
+                                <lightning-icon icon-name="standard:account" size="medium" alternative-text="Account"></lightning-icon>
+                            </div>
+                            <div class="slds-media__body">
+                                <span class="slds-text-title_caps slds-line-height_reset">Item Purchase Tool</span>
+                                <h1 class="slds-page-header__title slds-truncate" title={account.Name}>{account.Name}</h1>
+                                <p class="slds-text-body_small slds-text-color_weak slds-m-top_xx-small">
+                                    <strong>Account Number:</strong> {account.AccountNumber} | 
+                                    <strong>Industry:</strong> {account.Industry}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-page-header__col-actions">
+                        <div class="slds-inline_flex slds-align-middle">
+                            <template if:true={isManager}>
+                                <lightning-button 
+                                    label="Create Item" 
+                                    icon-name="utility:add" 
+                                    variant="neutral" 
+                                    onclick={openCreateModal}
+                                    class="slds-m-right_small">
+                                </lightning-button>
+                            </template>
+                            <lightning-button 
+                                label={cartButtonLabel} 
+                                icon-name="utility:shopping_cart" 
+                                variant="brand" 
+                                onclick={openCartModal}>
+                            </lightning-button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        <!-- Filters Section -->
+        <div class="slds-box slds-theme_default slds-m-bottom_medium filter-box">
+            <div class="slds-grid slds-wrap slds-gutters slds-grid_vertical-align-end">
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12 slds-m-bottom_small">
+                    <lightning-input 
+                        type="search" 
+                        label="Search Items" 
+                        placeholder="Search by name or description..." 
+                        value={searchKey}
+                        onchange={handleSearchChange}>
+                    </lightning-input>
+                </div>
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_3-of-12 slds-m-bottom_small">
+                    <lightning-combobox 
+                        name="typeFilter" 
+                        label="Type" 
+                        placeholder="All Types" 
+                        value={selectedType}
+                        options={typeOptions}
+                        onchange={handleTypeChange}>
+                    </lightning-combobox>
+                </div>
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_3-of-12 slds-m-bottom_small">
+                    <lightning-combobox 
+                        name="familyFilter" 
+                        label="Family" 
+                        placeholder="All Families" 
+                        value={selectedFamily}
+                        options={familyOptions}
+                        onchange={handleFamilyChange}>
+                    </lightning-combobox>
+                </div>
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_2-of-12 slds-m-bottom_small slds-text-align_right">
+                    <div class="items-count-indicator">
+                        Listed Items: <span class="slds-badge slds-badge_inverse count-number">{itemsCount}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Items Grid -->
+        <template if:true={isLoading}>
+            <div class="slds-align_absolute-center slds-p-around_large">
+                <lightning-spinner alternative-text="Loading items" size="medium"></lightning-spinner>
+            </div>
+        </template>
+
+        <template if:false={isLoading}>
+            <template if:true={hasItems}>
+                <div class="slds-grid slds-wrap slds-gutters">
+                    <template for:each={items} for:item="item">
+                        <div key={item.Id} class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12 slds-m-bottom_medium">
+                            <div class="item-card">
+                                <div class="item-image-container">
+                                    <template if:true={item.Image__c}>
+                                        <img src={item.Image__c} alt={item.Name} class="item-img" />
+                                    </template>
+                                    <template if:false={item.Image__c}>
+                                        <div class="item-img-placeholder">
+                                            <lightning-icon icon-name="utility:image" size="large"></lightning-icon>
+                                        </div>
+                                    </template>
+                                </div>
+                                <div class="item-details slds-p-around_small">
+                                    <h3 class="slds-text-heading_small slds-truncate item-title" title={item.Name}>{item.Name}</h3>
+                                    <p class="slds-text-body_small slds-text-color_weak slds-truncate slds-m-top_xx-small">{item.Description__c}</p>
+                                    
+                                    <div class="slds-m-top_small slds-grid slds-grid_align-spread slds-grid_vertical-align-center">
+                                        <span class="item-price">${item.Price__c}</span>
+                                        <span class={item.stockClass}>Stock: {item.AvailableQuantity__c}</span>
+                                    </div>
+                                </div>
+                                <div class="item-actions slds-p-horizontal_small slds-p-bottom_small slds-grid slds-grid_align-spread">
+                                    <lightning-button 
+                                        label="Details" 
+                                        variant="neutral" 
+                                        onclick={openDetailsModal}
+                                        data-id={item.Id}>
+                                    </lightning-button>
+                                    <lightning-button 
+                                        label="Add to Cart" 
+                                        variant="brand" 
+                                        onclick={handleAddToCart}
+                                        disabled={item.isOutOfStock}
+                                        data-id={item.Id}>
+                                    </lightning-button>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </template>
+            <template if:false={hasItems}>
+                <div class="slds-align_absolute-center slds-p-around_large no-items-card">
+                    <p class="slds-text-heading_small slds-text-color_weak">No items found matching your filters.</p>
+                </div>
+            </template>
+        </template>
+
+        <!-- ================= MODAL WINDOWS ================= -->
+
+        <!-- 1. Item Details Modal -->
+        <template if:true={isDetailsModalOpen}>
+            <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header">
+                        <lightning-button-icon 
+                            icon-name="utility:close" 
+                            class="slds-modal__close" 
+                            variant="bare-inverse" 
+                            alternative-text="Close" 
+                            onclick={closeDetailsModal}>
+                        </lightning-button-icon>
+                        <h2 class="slds-text-heading_medium">{selectedItem.Name}</h2>
+                    </header>
+                    <div class="slds-modal__content slds-p-around_medium">
+                        <div class="slds-grid slds-wrap slds-gutters">
+                            <div class="slds-col slds-size_1-of-1 slds-medium-size_5-of-12 slds-text-align_center">
+                                <img src={selectedItem.Image__c} alt={selectedItem.Name} class="modal-item-img" />
+                            </div>
+                            <div class="slds-col slds-size_1-of-1 slds-medium-size_7-of-12">
+                                <div class="slds-text-title_bold slds-m-bottom_xx-small">Description</div>
+                                <div class="slds-text-body_regular slds-m-bottom_medium">{selectedItem.Description__c}</div>
+
+                                <div class="slds-grid slds-wrap slds-m-bottom_medium">
+                                    <div class="slds-col slds-size_1-of-2 slds-m-bottom_small">
+                                        <span class="slds-text-title_bold">Type:</span> {selectedItem.Type__c}
+                                    </div>
+                                    <div class="slds-col slds-size_1-of-2 slds-m-bottom_small">
+                                        <span class="slds-text-title_bold">Family:</span> {selectedItem.Family__c}
+                                    </div>
+                                    <div class="slds-col slds-size_1-of-2">
+                                        <span class="slds-text-title_bold">Price:</span> <span class="item-price">${selectedItem.Price__c}</span>
+                                    </div>
+                                    <div class="slds-col slds-size_1-of-2">
+                                        <span class="slds-text-title_bold">Available Stock:</span> <span class={selectedItem.stockClass}>{selectedItem.AvailableQuantity__c}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <footer class="slds-modal__footer">
+                        <lightning-button label="Close" variant="neutral" onclick={closeDetailsModal} class="slds-m-right_small"></lightning-button>
+                        <lightning-button 
+                            label="Add to Cart" 
+                            variant="brand" 
+                            onclick={handleAddToCart} 
+                            disabled={selectedItem.isOutOfStock}
+                            data-id={selectedItem.Id}>
+                        </lightning-button>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </template>
+
+        <!-- 2. Shopping Cart Modal -->
+        <template if:true={isCartModalOpen}>
+            <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_medium">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header">
+                        <lightning-button-icon 
+                            icon-name="utility:close" 
+                            class="slds-modal__close" 
+                            variant="bare-inverse" 
+                            alternative-text="Close" 
+                            onclick={closeCartModal}>
+                        </lightning-button-icon>
+                        <h2 class="slds-text-heading_medium">Shopping Cart</h2>
+                    </header>
+                    <div class="slds-modal__content slds-p-around_medium">
+                        <template if:true={isCartEmpty}>
+                            <div class="slds-align_absolute-center slds-p-around_large">
+                                <p class="slds-text-heading_small slds-text-color_weak">Your cart is currently empty.</p>
+                            </div>
+                        </template>
+                        <template if:false={isCartEmpty}>
+                            <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_striped">
+                                <thead>
+                                    <tr class="slds-line-height_reset">
+                                        <th scope="col" style="width: 80px;">Image</th>
+                                        <th scope="col">Product Name</th>
+                                        <th scope="col">Unit Price</th>
+                                        <th scope="col" style="width: 150px;">Quantity</th>
+                                        <th scope="col">Total Cost</th>
+                                        <th scope="col" style="width: 50px;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template for:each={cart} for:item="cartItem">
+                                        <tr key={cartItem.itemId} class="slds-hint-parent">
+                                            <td>
+                                                <img src={cartItem.image} alt={cartItem.name} class="cart-row-img" />
+                                            </td>
+                                            <td>
+                                                <div class="slds-truncate" title={cartItem.name}>{cartItem.name}</div>
+                                            </td>
+                                            <td>${cartItem.unitPrice}</td>
+                                            <td>
+                                                <div class="slds-grid slds-grid_vertical-align-center">
+                                                    <lightning-button-icon 
+                                                        icon-name="utility:minus" 
+                                                        variant="border-filled" 
+                                                        size="small"
+                                                        onclick={decreaseCartItemQuantity} 
+                                                        data-id={cartItem.itemId}>
+                                                    </lightning-button-icon>
+                                                    <span class="slds-p-horizontal_small font-weight-bold">{cartItem.quantity}</span>
+                                                    <lightning-button-icon 
+                                                        icon-name="utility:plus" 
+                                                        variant="border-filled" 
+                                                        size="small"
+                                                        onclick={increaseCartItemQuantity} 
+                                                        data-id={cartItem.itemId}>
+                                                    </lightning-button-icon>
+                                                </div>
+                                            </td>
+                                            <td class="font-weight-bold">${cartItem.totalCost}</td>
+                                            <td>
+                                                <lightning-button-icon 
+                                                    icon-name="utility:delete" 
+                                                    variant="error" 
+                                                    alternative-text="Remove Item" 
+                                                    onclick={removeCartItem} 
+                                                    data-id={cartItem.itemId}>
+                                                </lightning-button-icon>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                            <div class="slds-grid slds-grid_align-end slds-m-top_medium slds-p-right_medium">
+                                <div class="slds-text-heading_small">
+                                    Grand Total: <span class="item-price slds-m-left_small">${cartGrandTotal}</span>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                    <footer class="slds-modal__footer">
+                        <lightning-button label="Close" variant="neutral" onclick={closeCartModal} class="slds-m-right_small"></lightning-button>
+                        <lightning-button 
+                            label="Checkout" 
+                            variant="brand" 
+                            onclick={handleCheckout} 
+                            disabled={isCartEmpty}>
+                        </lightning-button>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </template>
+
+        <!-- 3. Create Item Modal (Manager Only) -->
+        <template if:true={isCreateModalOpen}>
+            <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header">
+                        <lightning-button-icon 
+                            icon-name="utility:close" 
+                            class="slds-modal__close" 
+                            variant="bare-inverse" 
+                            alternative-text="Close" 
+                            onclick={closeCreateModal}>
+                        </lightning-button-icon>
+                        <h2 class="slds-text-heading_medium">Create New Item</h2>
+                    </header>
+                    <div class="slds-modal__content slds-p-around_medium">
+                        <lightning-messages></lightning-messages>
+                        <div class="slds-grid slds-wrap slds-gutters">
+                            <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+                                <lightning-input label="Item Name" required value={newItem.Name} onchange={handleNewItemChange} data-field="Name"></lightning-input>
+                            </div>
+                            <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+                                <lightning-textarea label="Description" value={newItem.Description__c} onchange={handleNewItemChange} data-field="Description__c"></lightning-textarea>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-m-bottom_small">
+                                <lightning-combobox label="Type" required value={newItem.Type__c} options={typeOptionsWithoutAll} onchange={handleNewItemChange} data-field="Type__c"></lightning-combobox>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-m-bottom_small">
+                                <lightning-combobox label="Family" required value={newItem.Family__c} options={familyOptionsWithoutAll} onchange={handleNewItemChange} data-field="Family__c"></lightning-combobox>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-m-bottom_small">
+                                <lightning-input type="number" step="0.01" label="Price ($)" required value={newItem.Price__c} onchange={handleNewItemChange} data-field="Price__c"></lightning-input>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-m-bottom_small">
+                                <lightning-input type="number" label="Available Quantity" required value={newItem.AvailableQuantity__c} onchange={handleNewItemChange} data-field="AvailableQuantity__c"></lightning-input>
+                            </div>
+                        </div>
+                        <p class="slds-text-body_small slds-text-color_weak slds-m-top_small">
+                            * Note: The item image will be searched and populated automatically from the Unsplash API using the item name.
+                        </p>
+                    </div>
+                    <footer class="slds-modal__footer">
+                        <lightning-button label="Cancel" variant="neutral" onclick={closeCreateModal} class="slds-m-right_small"></lightning-button>
+                        <lightning-button label="Save Item" variant="brand" onclick={handleSaveItem}></lightning-button>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </template>
+
+    </div>
+</template>

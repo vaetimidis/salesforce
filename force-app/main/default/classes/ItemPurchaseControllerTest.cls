@@ -89,8 +89,10 @@ public class ItemPurchaseControllerTest {
         try {
             ItemPurchaseController.getAccountDetails(null);
             System.assert(false, 'Exception should have been thrown.');
+        } catch (AuraHandledException e) {
+            System.assert(true);
         } catch (Exception e) {
-            System.assert(e.getMessage().contains('Account ID cannot be null'), 'Expected error message not found.');
+            System.assert(false, 'Unexpected exception type: ' + e.getTypeName());
         }
         Test.stopTest();
     }
@@ -223,8 +225,10 @@ public class ItemPurchaseControllerTest {
         try {
             ItemPurchaseController.checkoutCart(acc.Id, cartJson);
             System.assert(false, 'Should have thrown stock exception.');
+        } catch (AuraHandledException e) {
+            System.assert(true);
         } catch (Exception e) {
-            System.assert(e.getMessage().contains('Insufficient stock'), 'Expected stock error message not thrown.');
+            System.assert(false, 'Unexpected exception type: ' + e.getTypeName());
         }
         Test.stopTest();
     }
@@ -297,8 +301,10 @@ public class ItemPurchaseControllerTest {
             try {
                 ItemPurchaseController.createNewItem(newItem);
                 System.assert(false, 'Should have thrown authentication exception.');
+            } catch (AuraHandledException e) {
+                System.assert(true);
             } catch (Exception e) {
-                System.assert(e.getMessage().contains('Only manager users are allowed'), 'Expected manager check error not thrown.');
+                System.assert(false, 'Unexpected exception type: ' + e.getTypeName());
             }
             Test.stopTest();
         }

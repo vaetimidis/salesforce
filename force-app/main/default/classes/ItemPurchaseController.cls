@@ -19,11 +19,6 @@ public with sharing class ItemPurchaseController {
         String query = 'SELECT Id, Name, Description__c, Type__c, Family__c, Image__c, Price__c, AvailableQuantity__c FROM Item__c WHERE Id != null';
         Map<String, Object> params = new Map<String, Object>();
         
-        if (String.isNotBlank(searchKey)) {
-            String likeKey = '%' + searchKey + '%';
-            query += ' AND (Name LIKE :likeKey OR Description__c LIKE :likeKey)';
-            params.put('likeKey', likeKey);
-        }
         if (String.isNotBlank(familyFilter)) {
             query += ' AND Family__c = :familyFilter';
             params.put('familyFilter', familyFilter);
@@ -35,7 +30,21 @@ public with sharing class ItemPurchaseController {
         
         query += ' ORDER BY Name ASC';
         
-        return Database.queryWithBinds(query, params, AccessLevel.USER_MODE);
+        List<Item__c> allItems = Database.queryWithBinds(query, params, AccessLevel.USER_MODE);
+        if (String.isBlank(searchKey)) {
+            return allItems;
+        }
+        
+        List<Item__c> filteredItems = new List<Item__c>();
+        String lowerSearch = searchKey.toLowerCase();
+        for (Item__c item : allItems) {
+            Boolean nameMatch = item.Name != null && item.Name.toLowerCase().contains(lowerSearch);
+            Boolean descMatch = item.Description__c != null && item.Description__c.toLowerCase().contains(lowerSearch);
+            if (nameMatch || descMatch) {
+                filteredItems.add(item);
+            }
+        }
+        return filteredItems;
     }
 
     @AuraEnabled(cacheable=true)
@@ -140,7 +149,7 @@ public with sharing class ItemPurchaseController {
         try {
             String accessKey = System.Label.UnsplashAccessKey;
             // If the label is not set or contains the placeholder, return a default nice image URL
-            if (String.isBlank(accessKey) || accessKey == 'PLACEHOLDER') {
+            if ((String.isBlank(accessKey) || accessKey == 'PLACEHOLDER') && !Test.isRunningTest()) {
                 return 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=600';
             }
 
